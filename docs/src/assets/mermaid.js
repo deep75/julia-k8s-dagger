@@ -3,8 +3,11 @@
 // Pourquoi un asset maison plutôt que DocumenterMermaid : Documenter charge
 // RequireJS, dont le `define()` global capture les modules UMD empaquetés dans
 // mermaid@11 (dayjs, etc.) -> « Mismatched anonymous define() » puis
-// « Se.default.extend is not a function ». On neutralise donc `define`/`require`
-// le temps de l'import dynamique de mermaid, puis on les restaure.
+// « Se.default.extend is not a function ». On neutralise donc `define` (et lui
+// seul) le temps de l'import dynamique de mermaid, puis on le restaure.
+//
+// On attend l'évènement `load` : à ce moment documenter.js / RequireJS ont fini
+// de résoudre leur graphe de modules, neutraliser `define` ne casse plus rien.
 
 (function () {
   "use strict";
@@ -12,25 +15,17 @@
   var MERMAID_URL = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
   var mermaidPromise = null;
 
-  function loadMermaid() {
+  function importMermaid() {
     if (mermaidPromise) return mermaidPromise;
     var savedDefine = window.define;
-    var savedRequire = window.require;
-    try {
-      window.define = undefined;
-      window.require = undefined;
-    } catch (e) { /* propriétés non configurables sur certains navigateurs */ }
+    try { window.define = undefined; } catch (e) { /* non configurable */ }
     mermaidPromise = import(MERMAID_URL)
       .then(function (m) { return m.default; })
-      .finally(function () {
-        window.define = savedDefine;
-        window.require = savedRequire;
-      });
+      .finally(function () { window.define = savedDefine; });
     return mermaidPromise;
   }
 
-  // Thème courant de Documenter (clair / sombre), tel qu'il est réellement appliqué.
-  // Documenter 1.x embarque documenter-light/dark + les 4 variantes catppuccin.
+  // Thème courant de Documenter (documenter-light/dark + variantes catppuccin).
   var DARK = /dark$|mocha$|macchiato$|frappe$/i;
   var LIGHT = /light$|latte$/i;
 
@@ -78,7 +73,7 @@
     var divs = collectDivs();
     if (!divs.length) return;
     busy = true;
-    loadMermaid()
+    importMermaid()
       .then(function (mermaid) {
         mermaid.initialize({
           startOnLoad: false,
@@ -99,26 +94,18 @@
       });
   }
 
-  function ready(fn) {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", fn);
-    } else {
-      fn();
-    }
-  }
-
-  ready(function () {
+  function start() {
     render();
     // Re-rendu quand Documenter bascule le thème clair / sombre.
     var pending = null;
-    function schedule() {
-      clearTimeout(pending);
-      pending = setTimeout(render, 100);
-    }
+    function schedule() { clearTimeout(pending); pending = setTimeout(render, 100); }
     var obs = new MutationObserver(schedule);
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     document.querySelectorAll("link[data-theme-name]").forEach(function (l) {
       obs.observe(l, { attributes: true, attributeFilter: ["disabled"] });
     });
-  });
+  }
+
+  if (document.readyState === "complete") start();
+  else window.addEventListener("load", start);
 })();
