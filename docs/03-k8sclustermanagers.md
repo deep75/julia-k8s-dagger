@@ -76,6 +76,33 @@ spec:
 Le **cookie Distributed** est porté par un label - il ne sert qu'au filtrage diagnostique ;
 l'authentification réelle se fait dans le protocole `--worker`.
 
+### 3.3.1 Le piège `exeflags` : un `String` = **un seul** flag
+
+`K8sClusterManagers` construit la commande du worker par interpolation dans un
+`Cmd` : `` cmd = `$exename $exeflags --worker=<cookie> --bind-to=0.0.0.0` ``.
+Or Julia n'éclate un `String` en plusieurs arguments **que** s'il s'agit d'un
+`Cmd` (backticks) ou d'un `Vector{String}` - un `String` simple reste **un
+seul** argument, quelle que soit la présence d'espaces (contrat de
+`Distributed.addprocs`).
+
+```mermaid
+flowchart TB
+    subgraph BAD["exeflags = String de 2 flags (séparés par une espace)"]
+        direction TB
+        B1["exeflags = String : --project=/app -t 2"]
+        B1 --> B2["interpolation dans un Cmd : julia $exeflags --worker<br/>argv = julia · '--project=/app -t 2' · --worker"]
+        B2 --> B3["❌ 1 seul argument aggloméré<br/>julia: unknown option → le worker ne démarre pas"]
+    end
+    subgraph GOOD["exeflags = Cmd (backticks) ou Vector de String"]
+        direction TB
+        G1["exeflags = Cmd : --project=/app -t 2"]
+        G1 --> G2["argv = julia · --project=/app · -t · 2 · --worker"]
+        G2 --> G3["✅ bon projet + 2 threads<br/>(2 ThreadProc Dagger par pod)"]
+    end
+    B3 -.->|"contrat Distributed"| R["String ⇒ 1 flag exactement ;<br/>plusieurs flags ⇒ Cmd ou Vector de String"]
+    G3 -.-> R
+```
+
 ## 3.4 Choix de la route de connexion
 
 ```mermaid
