@@ -1,6 +1,6 @@
 # 06 - Déploiement : artefacts et scripts
 
-> Cadre théorique : tous les fichiers cités sont fournis dans [`examples/`](../examples),
+> Cadre théorique : tous les fichiers cités sont fournis dans [`examples/`](https://github.com/deep75/julia-k8s-dagger/tree/main/examples),
 > prêts à adapter. **Aucun cluster n'est installé ni exécuté ici.**
 
 ## 6.1 Arborescence et objets Kubernetes
@@ -41,7 +41,7 @@ qu'en TCP avec le driver. Seul le pod driver porte `julia-driver`.
 
 ## 6.2 `driver.jl` - le driver commenté
 
-Fichier complet : [`examples/driver.jl`](../examples/driver.jl). Points saillants :
+Fichier complet : [`examples/driver.jl`](https://github.com/deep75/julia-k8s-dagger/blob/main/examples/driver.jl). Points saillants :
 
 ```julia
 # 1) Le hook configure : la seule porte pour poser serviceAccountName
@@ -68,7 +68,7 @@ le driver - `single=` étant déprécié en 0.22) et le renvoi vers les scopes a
 
 ## 6.3 `Dockerfile` - image unique driver + workers
 
-Fichier : [`examples/Dockerfile`](../examples/Dockerfile). Principe :
+Fichier : [`examples/Dockerfile`](https://github.com/deep75/julia-k8s-dagger/blob/main/examples/Dockerfile). Principe :
 
 ```dockerfile
 FROM julia:1.10                     # version unique imposée driver/workers
@@ -85,7 +85,7 @@ démarrage de chaque pod.
 
 ## 6.4 `rbac.yaml` - identité et permissions du driver
 
-Fichier : [`examples/rbac.yaml`](../examples/rbac.yaml). Le mappage verbes ↔ opérations
+Fichier : [`examples/rbac.yaml`](https://github.com/deep75/julia-k8s-dagger/blob/main/examples/rbac.yaml). Le mappage verbes ↔ opérations
 internes est détaillé au [chapitre 03 §3.7](03-k8sclustermanagers.md) :
 
 | Ressource | Verbes | Pourquoi |
@@ -98,7 +98,7 @@ internes est détaillé au [chapitre 03 §3.7](03-k8sclustermanagers.md) :
 
 ## 6.5 `manager-pod.yaml` - le pod driver
 
-Fichier : [`examples/manager-pod.yaml`](../examples/manager-pod.yaml).
+Fichier : [`examples/manager-pod.yaml`](https://github.com/deep75/julia-k8s-dagger/blob/main/examples/manager-pod.yaml).
 
 ```yaml
 spec:

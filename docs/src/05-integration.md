@@ -36,7 +36,7 @@ sequenceDiagram
     Note over W: pods → phase Completed<br/>(suppression manuelle par label)
 ```
 
-Le squelette Julia correspondant (version commentée complète : [`examples/driver.jl`](../examples/driver.jl)) :
+Le squelette Julia correspondant (version commentée complète : [`examples/driver.jl`](https://github.com/deep75/julia-k8s-dagger/blob/main/examples/driver.jl)) :
 
 ```julia
 using Distributed, K8sClusterManagers, Dagger

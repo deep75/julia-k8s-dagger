@@ -7,6 +7,9 @@
 *.jl.mem
 Manifest*.toml
 
+# Documenter.jl (build local du site)
+/docs/build/
+
 # Kubernetes / local experimentation artifacts
 *.kubeconfig
 kubeconfig.yaml

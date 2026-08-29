@@ -76,4 +76,4 @@ dans Kubernetes avec une séparation de soucis propre :
 
 ---
 
-**Retour au [README](../README.md)** - sommaire, versions de référence, démarrage rapide.
+**Retour à l'[accueil](index.md)** — sommaire, versions de référence, démarrage rapide.

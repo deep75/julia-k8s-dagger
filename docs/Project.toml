@@ -1,0 +1,13 @@
+# Environnement de build de la documentation (Documenter.jl → GitHub Pages).
+# Utilisé par docs/make.jl et le workflow .github/workflows/Documentation.yml.
+#
+# Le rendu Mermaid est assuré par docs/src/assets/mermaid.js (chargé via
+# `assets` dans make.jl) — pas par DocumenterMermaid, qui entre en conflit
+# avec le chargeur AMD (RequireJS) embarqué par Documenter.
+
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[compat]
+Documenter = "1"
+julia = "1.10"
