@@ -15,7 +15,7 @@ using Dagger
 using K8sClusterManagers
 
 # On suppose un premier pool déjà lancé (cf. driver.jl) :
-#   addprocs(K8sClusterManager(4; cpu="2", memory="8Gi"); exeflags="--project=/app -t 2")
+#   addprocs(K8sClusterManager(4; cpu="2", memory="8Gi"); exeflags=`--project=/app -t 2`)
 #   @everywhere using Dagger
 @assert nworkers() > 0 "Lancez d'abord addprocs(K8sClusterManager(...)) - voir driver.jl"
 
@@ -86,7 +86,7 @@ job = @async Dagger.collect(ctx, tas)
 
 # À chaud : deux pods workers supplémentaires…
 ps = addprocs(K8sClusterManager(2; cpu="2", memory="8Gi");
-              exeflags="--project=/app")
+              exeflags=`--project=/app`)
 @everywhere ps using Dagger          # requis AVANT l'intégration au pool
 addprocs!(ctx, ps)                   # …voilà le pool qui grossit
 

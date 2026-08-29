@@ -49,7 +49,7 @@ flowchart TD
 # Un pipeline riche à transformer (Exemple typique de notre pile) :
 using Distributed, K8sClusterManagers, Dagger
 
-addprocs(K8sClusterManager(8; cpu="4", memory="16Gi"); exeflags="--project=/app -t 4")
+addprocs(K8sClusterManager(8; cpu="4", memory="16Gi"); exeflags=`--project=/app -t 4`)
 @everywhere using MonPackage
 
 # 64 blocs indépendants → 64 réductions → 1 total :

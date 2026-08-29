@@ -67,7 +67,7 @@ spec:
   containers:
   - name: worker
     image: "<image>"
-    command: ["julia", "<exeflags>", "--worker=<cookie>", "--bind-to=0.0.0.0"]
+    command: ["julia", "<exeflags…>", "--worker=<cookie>", "--bind-to=0.0.0.0"]  # exeflags éclaté en un argument par flag
     resources:
       requests: { cpu: "<cpu>", memory: "<memory>" }
       limits:   { cpu: "<cpu>", memory: "<memory>" }   # identiques aux requests

@@ -44,8 +44,10 @@ manager = K8sClusterManager(
 #    - --project=/app : environnement pré-construit dans l'image
 #    - -t 2           : 2 threads Julia par pod → 2 ThreadProc pour Dagger
 #    La même version de Julia partout est impérative (erreurs deserialize).
+#    `exeflags` doit être un `Cmd` (backticks) dès qu'il y a plusieurs flags :
+#    un `String` n'est accepté que pour UN seul flag (contrat de Distributed).
 # -----------------------------------------------------------------------------
-addprocs(manager; exeflags = "--project=/app -t 2")
+addprocs(manager; exeflags = `--project=/app -t 2`)
 @info "Workers connectés" nworkers = nworkers() workers = workers()
 
 # -----------------------------------------------------------------------------

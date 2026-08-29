@@ -56,7 +56,8 @@ manager = K8sClusterManager(4; cpu="2", memory="8Gi",
                             pending_timeout=300, configure=avec_service_account!)
 
 # 3) Démarrage : environnement pré-construit dans l'image + 2 threads/pod
-addprocs(manager; exeflags="--project=/app -t 2")
+#    (exeflags = Cmd en backticks : obligatoire dès qu'il y a plusieurs flags)
+addprocs(manager; exeflags=`--project=/app -t 2`)
 
 # 4) Pipeline Dagger (génération → map → reduce), puis rmprocs(workers())
 ```

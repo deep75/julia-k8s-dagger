@@ -42,7 +42,7 @@ Le squelette Julia correspondant (version commentée complète : [`examples/driv
 using Distributed, K8sClusterManagers, Dagger
 
 addprocs(K8sClusterManager(4; cpu="2", memory="8Gi");
-         exeflags="--project=/app -t 2")
+         exeflags=`--project=/app -t 2`)   # Cmd (backticks) : plusieurs flags
 
 @everywhere using MonPackage           # environnement pré-construit dans l'image
 
@@ -62,7 +62,7 @@ neufs** - rien n'y est installé à l'exécution si l'image ne le contient pas.
 flowchart TD
     Q["Que doit contenir l'image des workers ?"] --> A["Julia - MÊME version que le driver<br/>(sinon erreurs deserialize)"]
     A --> B{"Environnement projet (packages) ?"}
-    B -- "recommandé" --> C["Pré-construit dans l'image :<br/>Project.toml (+ Manifest) → instantiate + precompile<br/>exeflags = --project=/app -t N"]
+    B -- "recommandé" --> C["Pré-construit dans l'image :<br/>Project.toml (+ Manifest) → instantiate + precompile<br/>exeflags = `--project=/app -t N` (Cmd)"]
     B -- "déconseillé" --> D["Installation à chaud dans les pods<br/>(réseau, latence, non reproductible)"]
     C --> E["Packages identiques partout<br/>precompile → pas de tempête de compilation"]
 ```
@@ -74,7 +74,9 @@ Règles d'or :
 2. **Même environnement de packages** : `--project=/app` dans `exeflags`, `/app` étant
    instancié **au build** de l'image.
 3. **`-t N`** dans `exeflags` donne N `ThreadProc` par pod - c'est la granularité de
-   parallélisme intra-pod de Dagger.
+   parallélisme intra-pod de Dagger. `exeflags` avec plusieurs flags **doit** être
+   un `Cmd` (backticks : `` `--project=/app -t N` ``) ; un `String` n'est valide
+   que pour un flag unique.
 4. **Précompilation au build** (`Pkg.precompile()`) évite que chaque pod compile les paquets
    à son démarrage.
 

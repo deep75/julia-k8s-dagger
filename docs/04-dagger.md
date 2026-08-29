@@ -163,7 +163,7 @@ L'ordonnanceur élastique accepte l'arrivée/départ de processeurs pendant l'ex
 ```julia
 ctx = Dagger.Context()
 job = @async collect(ctx, tas)      # le scheduler tourne
-ps = addprocs(2; exeflags="--project=/app")   # ou addprocs(K8sClusterManager(...))
+ps = addprocs(2; exeflags=`--project=/app`)   # ou addprocs(K8sClusterManager(...))
 @everywhere ps using Distributed, Dagger
 addprocs!(ctx, ps)                  # les nouveaux workers prennent des tâches
 rmprocs(ctx, ps)                    # finissent leur travail, plus de nouvelles tâches

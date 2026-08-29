@@ -55,7 +55,7 @@ des pods Kubernetes via `kubectl` ; les données circulent par sérialisation Ju
 
    ```julia
    using Distributed, K8sClusterManagers, Dagger
-   addprocs(K8sClusterManager(4; cpu="2", memory="8Gi"); exeflags="--project=/app -t 2")
+   addprocs(K8sClusterManager(4; cpu="2", memory="8Gi"); exeflags=`--project=/app -t 2`)
    @everywhere using MonPackage
    résultat = fetch(Dagger.@spawn MonPackage.calcul_lourd(données))
    ```
