@@ -11,6 +11,42 @@
 #            aucun token long ; déploiement OIDC via l'environnement github-pages.
 
 using Documenter
+using Literate
+
+const REPO_URL   = "https://github.com/deep75/julia-k8s-dagger"
+const EXAMPLES   = joinpath(@__DIR__, "..", "examples")
+const GENERATED  = joinpath(@__DIR__, "src", "exemples")
+
+# --- Exemples : examples/*.jl -> pages Documenter via Literate (sans exécution) ---
+# Les scripts restent exécutables tels quels ; ici ils sont seulement mis en forme
+# (prose issue des commentaires + code). Aucune exécution : ils supposent un cluster.
+const EXAMPLE_PAGES = [
+    "dagger-basiques"      => "Dagger.jl sans cluster",
+    "driver"               => "Driver distribué complet",
+    "scopes-et-elasticite" => "Scopes & pool élastique",
+]
+
+"Supprime les filets de bannière et impose un titre H1 propre."
+literate_preprocess(title) = content -> begin
+    kept = filter(split(content, '\n')) do line
+        !occursin(r"^#[ \t]*[=\-–—_]{4,}[ \t]*$", line)
+    end
+    string("# # ", title, "\n#\n", join(kept, '\n'))
+end
+
+isdir(GENERATED) && rm(GENERATED; recursive = true)
+mkpath(GENERATED)
+for (base, title) in EXAMPLE_PAGES
+    Literate.markdown(
+        joinpath(EXAMPLES, base * ".jl"), GENERATED;
+        name       = base,
+        preprocess = literate_preprocess(title),
+        codefence  = "```julia" => "```",   # blocs simples : pas d'exécution Documenter
+        repo_root_url = REPO_URL * "/blob/main",
+        documenter = true,
+        credit     = true,
+    )
+end
 
 makedocs(;
     sitename = "Julia sur Kubernetes — K8sClusterManagers × Dagger",
@@ -35,5 +71,6 @@ makedocs(;
         "06 — Déploiement"             => "06-deploiement.md",
         "07 — Production"              => "07-production.md",
         "08 — Limites et alternatives" => "08-limites-et-alternatives.md",
+        "Exemples de code"             => ["exemples/$b.md" for (b, _) in EXAMPLE_PAGES],
     ],
 )

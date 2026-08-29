@@ -19,3 +19,6 @@ secrets/
 .vscode/
 .idea/
 *.swp
+
+# Pages Literate générées au build
+/docs/src/exemples/
