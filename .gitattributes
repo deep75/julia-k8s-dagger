@@ -1,4 +1,9 @@
-# Classification des langages pour la barre GitHub (linguist)
-*.jl       linguist-language=Julia
-*.sh       linguist-language=Shell
-Dockerfile linguist-language=Dockerfile
+# Classification des langages pour la barre GitHub (linguist).
+#
+# NB : linguist exclut par défaut les dossiers docs/ et examples/ comme
+# « documentation » (lib/linguist/documentation.yml : ^docs/, ^examples/).
+# Tout notre code vit dans examples/ : on force donc la comptabilisation.
+
+examples/*.jl       linguist-language=Julia      linguist-documentation=false
+examples/*.sh       linguist-language=Shell      linguist-documentation=false
+examples/Dockerfile linguist-language=Dockerfile linguist-documentation=false
