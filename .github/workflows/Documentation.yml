@@ -7,19 +7,19 @@ on:
   pull_request:
   workflow_dispatch:
 
-# Déploiement GitHub Pages « Source : GitHub Actions » (OIDC, pas de token long).
+# `deploydocs` pousse le site compilé sur la branche `gh-pages` via le
+# GITHUB_TOKEN (suffisant pour un dépôt public — aucune clé SSH à créer).
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
+  pull-requests: read
+  statuses: write
 
-# Une seule publication Pages à la fois ; on ne coupe pas un déploiement en cours.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,24 +33,8 @@ jobs:
       - name: Instancier l'environnement docs/
         run: julia --project=docs -e 'using Pkg; Pkg.instantiate()'
 
-      - name: Construire le site (Documenter → docs/build/)
+      - name: Construire et déployer (makedocs + deploydocs)
         run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JULIA_DEBUG: Documenter
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/build
-
-  deploy:
-    # Publie uniquement depuis main (les PR ne font que builder/valider).
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}

@@ -7,3 +7,6 @@
 examples/*.jl       linguist-language=Julia      linguist-documentation=false
 examples/*.sh       linguist-language=Shell      linguist-documentation=false
 examples/Dockerfile linguist-language=Dockerfile linguist-documentation=false
+
+# Bundle mermaid (esbuild) : artefact, hors statistiques et diffs.
+docs/src/assets/mermaid.bundle.js linguist-generated=true

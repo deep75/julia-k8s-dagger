@@ -1,29 +1,15 @@
 // Rendu des diagrammes Mermaid pour les pages Documenter.
 //
-// Pourquoi un asset maison plutôt que DocumenterMermaid : Documenter charge
-// RequireJS, dont le `define()` global capture les modules UMD empaquetés dans
-// mermaid@11 (dayjs, etc.) -> « Mismatched anonymous define() » puis
-// « Se.default.extend is not a function ». On neutralise donc `define` (et lui
-// seul) le temps de l'import dynamique de mermaid, puis on le restaure.
-//
-// On attend l'évènement `load` : à ce moment documenter.js / RequireJS ont fini
-// de résoudre leur graphe de modules, neutraliser `define` ne casse plus rien.
+// mermaid est chargé depuis assets/mermaid.bundle.js : un bundle IIFE (esbuild,
+// `--define:define=undefined`) qui n'émet aucun appel `define()`. Il expose
+// `window.__mermaidLib` et n'entre donc PAS en conflit avec le chargeur AMD
+// (RequireJS) embarqué par Documenter — contrairement au build ESM de mermaid
+// servi par CDN, dont les dépendances UMD (dayjs…) se font capturer par
+// RequireJS (« Mismatched anonymous define() » / « Se.default.extend is not a
+// function »).
 
 (function () {
   "use strict";
-
-  var MERMAID_URL = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-  var mermaidPromise = null;
-
-  function importMermaid() {
-    if (mermaidPromise) return mermaidPromise;
-    var savedDefine = window.define;
-    try { window.define = undefined; } catch (e) { /* non configurable */ }
-    mermaidPromise = import(MERMAID_URL)
-      .then(function (m) { return m.default; })
-      .finally(function () { window.define = savedDefine; });
-    return mermaidPromise;
-  }
 
   // Thème courant de Documenter (documenter-light/dark + variantes catppuccin).
   var DARK = /dark$|mocha$|macchiato$|frappe$/i;
@@ -67,14 +53,23 @@
     return Array.prototype.slice.call(document.querySelectorAll("div.mermaid"));
   }
 
+  function whenLib(cb) {
+    if (window.__mermaidLib) return cb(window.__mermaidLib);
+    var tries = 0;
+    var t = setInterval(function () {
+      if (window.__mermaidLib) { clearInterval(t); cb(window.__mermaidLib); }
+      else if (++tries > 100) { clearInterval(t); console.error("[mermaid] bundle non chargé"); }
+    }, 50);
+  }
+
   var busy = false, again = false;
   function render() {
     if (busy) { again = true; return; }
     var divs = collectDivs();
     if (!divs.length) return;
     busy = true;
-    importMermaid()
-      .then(function (mermaid) {
+    whenLib(function (mermaid) {
+      try {
         mermaid.initialize({
           startOnLoad: false,
           securityLevel: "loose",
@@ -85,18 +80,18 @@
           d.removeAttribute("data-processed");
           d.innerHTML = d.getAttribute("data-mermaid-src") || d.textContent;
         });
-        return mermaid.run({ nodes: divs });
-      })
-      .catch(function (e) { console.error("[mermaid]", e); })
-      .finally(function () {
+        mermaid.run({ nodes: divs })
+          .catch(function (e) { console.error("[mermaid]", e); })
+          .finally(function () { busy = false; if (again) { again = false; render(); } });
+      } catch (e) {
+        console.error("[mermaid]", e);
         busy = false;
-        if (again) { again = false; render(); }
-      });
+      }
+    });
   }
 
   function start() {
     render();
-    // Re-rendu quand Documenter bascule le thème clair / sombre.
     var pending = null;
     function schedule() { clearTimeout(pending); pending = setTimeout(render, 100); }
     var obs = new MutationObserver(schedule);
@@ -106,6 +101,6 @@
     });
   }
 
-  if (document.readyState === "complete") start();
-  else window.addEventListener("load", start);
+  if (document.readyState !== "loading") start();
+  else document.addEventListener("DOMContentLoaded", start);
 })();

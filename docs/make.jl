@@ -5,10 +5,10 @@
 #            → site statique dans docs/build/ (ouvrir docs/build/index.html)
 #
 #   CI/CD :  .github/workflows/Documentation.yml
-#            makedocs → docs/build/ → actions/upload-pages-artifact
-#                                   → actions/deploy-pages
-#            GitHub Pages « Source : GitHub Actions » — aucune branche gh-pages,
-#            aucun token long ; déploiement OIDC via l'environnement github-pages.
+#            makedocs -> deploydocs : le site compilé est poussé sur la branche
+#            `gh-pages` (jamais `main`). GitHub Pages « Deploy from a branch »
+#            -> gh-pages / (root). Commits gh-pages signés « Documenter.jl »,
+#            hors branche par défaut -> n'apparaissent pas dans les contributeurs.
 
 using Documenter
 using Literate
@@ -58,8 +58,8 @@ makedocs(;
         canonical         = "https://deep75.github.io/julia-k8s-dagger",
         edit_link         = "main",
         inventory_version = "",
-        # Rendu Mermaid maison (contourne le conflit RequireJS/AMD).
-        assets            = ["assets/mermaid.js"],
+        # Rendu Mermaid : bundle IIFE (mermaid.bundle.js) + init (mermaid.js).
+        assets            = ["assets/mermaid.bundle.js", "assets/mermaid.js"],
     ),
     pages = [
         "Accueil"                      => "index.md",
@@ -73,4 +73,10 @@ makedocs(;
         "08 — Limites et alternatives" => "08-limites-et-alternatives.md",
         "Exemples de code"             => ["exemples/$b.md" for (b, _) in EXAMPLE_PAGES],
     ],
+)
+
+deploydocs(;
+    repo      = "github.com/deep75/julia-k8s-dagger.git",
+    devbranch = "main",
+    versions  = ["dev" => "dev"],
 )
