@@ -1,0 +1,4 @@
+# Classification des langages pour la barre GitHub (linguist)
+*.jl       linguist-language=Julia
+*.sh       linguist-language=Shell
+Dockerfile linguist-language=Dockerfile
