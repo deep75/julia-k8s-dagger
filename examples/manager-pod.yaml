@@ -1,0 +1,53 @@
+# =============================================================================
+# manager-pod.yaml - pod driver Julia (exemple théorique).
+#
+# Alternative interactive (README officiel de K8sClusterManagers.jl) :
+#     kubectl run -it example-manager-pod --image julia:1
+#
+# Application : kubectl apply -f manager-pod.yaml   (ou 03-run-driver.sh)
+# Suivi      : kubectl logs -f pod/julia-driver
+# =============================================================================
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: julia-driver
+  namespace: julia
+  labels:
+    app: julia-driver
+spec:
+  # Les permissions du driver (cf. rbac.yaml) :
+  serviceAccountName: julia-driver
+
+  # Un driver est un calcul BATCH : pas de redémarrage automatique.
+  # (Les pods workers héritent aussi de restartPolicy: Never par conception.)
+  restartPolicy: Never
+
+  containers:
+    - name: driver
+      image: registry.example.com/mon-equipe/julia-app:1.10
+      imagePullPolicy: IfNotPresent
+
+      # L'environnement /app est pré-construit dans l'image (Dockerfile).
+      command: ["julia", "--project=/app", "driver.jl"]
+
+      env:
+        - name: NP_WORKERS          # nb de pods workers demandés
+          value: "4"
+
+      # requests == limits → QoS Guaranteed (cf. docs/07-production.md §7.3).
+      # Le driver orchestre : il ne calcule pas lourd - restez modeste.
+      resources:
+        requests:
+          cpu: "1"
+          memory: "4Gi"
+        limits:
+          cpu: "1"
+          memory: "4Gi"
+
+      # Registry privée : décommentez et créez le secret :
+      #   kubectl create secret docker-registry regcred \
+      #     --docker-server=registry.example.com ...
+      # imagePullSecrets se posent au niveau `spec:` du pod.
+  # imagePullSecrets:
+  #   - name: regcred

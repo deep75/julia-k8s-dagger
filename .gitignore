@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Julia
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+Manifest*.toml
+
+# Kubernetes / local experimentation artifacts
+*.kubeconfig
+kubeconfig.yaml
+secrets/
+
+# Editors
+.vscode/
+.idea/
+*.swp

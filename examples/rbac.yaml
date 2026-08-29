@@ -1,0 +1,77 @@
+# =============================================================================
+# rbac.yaml - identité et permissions du pod driver Julia (théorique).
+#
+# Mappage verbe ↔ opération interne : docs/03-k8sclustermanagers.md §3.7.
+# Application : kubectl apply -f rbac.yaml   (ou 02-deploy-rbac.sh)
+#
+# Principe : seul le DRIVER a des permissions ; les workers n'en ont aucune
+# (ils ne communiquent qu'en TCP avec le driver).
+# =============================================================================
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: julia-driver
+  namespace: julia
+
+---
+# Permissions restreintes au namespace `julia` (moindre privilège).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: julia-driver
+  namespace: julia
+rules:
+  # Cycle de vie des pods workers :
+  #   create → create_pod ; get/list/watch → get_pod, wait_for_running_pod ;
+  #   patch  → label_pod (:register, label worker-id) ;
+  #   delete → delete_pod (pending_timeout, nettoyage)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "create", "patch", "delete"]
+
+  # Flux de logs (kubectl logs -f - streaming du driver + diagnostics)
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+
+  # Interruption distante des workers (:interrupt → kubectl exec kill -2)
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+
+  # Lecture de l'état fin (pod_status : OOMKilled, Completed, Error…)
+  - apiGroups: [""]
+    resources: ["pods/status"]
+    verbs: ["get"]
+
+  # UNIQUEMENT si le driver tourne HORS du cluster sous cette identité
+  # (connexion par kubectl port-forward - cf. docs/06-deploiement.md §6.8) :
+  # - apiGroups: [""]
+  #   resources: ["pods/portforward"]
+  #   verbs: ["create", "get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: julia-driver
+  namespace: julia
+subjects:
+  - kind: ServiceAccount
+    name: julia-driver
+    namespace: julia
+roleRef:
+  kind: Role
+  name: julia-driver
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# ServiceAccount des WORKERS : volontairement SANS aucun rôle.
+# (posé sur les pods workers via le hook `configure` du driver - driver.jl)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: julia-worker
+  namespace: julia

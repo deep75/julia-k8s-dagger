@@ -1,0 +1,12 @@
+# Environnement Julia des exemples (driver comme workers).
+#
+# Instantiate dans l'image (examples/Dockerfile) :
+#     julia --project=/app -e 'using Pkg; Pkg.instantiate()'
+#
+# UUIDs conformes aux Project.toml des paquets documentés :
+#   - Dagger.jl              v0.22.x (JuliaParallel/Dagger.jl)
+#   - K8sClusterManagers.jl  v0.1.5  (beacon-biosignals/K8sClusterManagers.jl)
+
+[deps]
+Dagger = "d58978e5-989f-55fb-8d15-ea34adc7bf54"
+K8sClusterManagers = "5aeab163-63d2-4171-9fbf-e22244d80acb"
